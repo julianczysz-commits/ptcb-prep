@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { AchievementUnlock } from "@/components/AchievementUnlock";
+import { LearnIcon } from "@/components/icons";
 import { LessonComplete } from "@/components/lesson/lesson-complete";
 import { LessonIntro } from "@/components/lesson/lesson-intro";
 import { QuestionCard } from "@/components/lesson/question-card";
@@ -26,7 +28,7 @@ type Phase = "intro" | "question" | "complete";
 
 export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const { completedIds } = useLessonProgress();
   const [phase, setPhase] = useState<Phase>("intro");
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -147,6 +149,51 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
 
   function handleHome() {
     router.push("/");
+  }
+
+  if (!userLoading && !user) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 pb-16 text-center">
+        <motion.section
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full max-w-md rounded-3xl border border-zinc-200/70 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -15 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.1 }}
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft dark:bg-brand/15"
+          >
+            <LearnIcon className="h-8 w-8 text-brand-strong" />
+          </motion.div>
+
+          <h1 className="mt-4 text-xl font-extrabold text-zinc-900 dark:text-zinc-50">
+            {lesson.title}
+          </h1>
+          <p className="mt-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+            Log in to take this lesson. Sign up for free to track your XP,
+            streak, and exam readiness.
+          </p>
+
+          <div className="mt-5 flex flex-col gap-3">
+            <Link
+              href="/login"
+              className="flex w-full items-center justify-center rounded-full bg-brand px-6 py-3.5 text-base font-extrabold text-white shadow-lg shadow-brand/25 transition-colors hover:bg-brand-strong"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              className="w-full rounded-full px-6 py-3 text-base font-extrabold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            >
+              Create an account
+            </Link>
+          </div>
+        </motion.section>
+      </div>
+    );
   }
 
   if (totalQuestions === 0) {

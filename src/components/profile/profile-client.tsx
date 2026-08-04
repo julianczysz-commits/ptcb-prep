@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
@@ -17,6 +18,7 @@ import { useLessonProgress } from "@/hooks/useLessonProgress";
 import { useProfile, XP_PER_LEVEL } from "@/hooks/useProfile";
 import { useUser } from "@/hooks/useUser";
 import { calculateStreak } from "@/lib/streak";
+import { supabase } from "@/lib/supabase";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -56,6 +58,7 @@ function StatCard({
 }
 
 export function ProfileClient() {
+  const router = useRouter();
   const { user, loading: userLoading } = useUser();
   const { username, xp, level, loading: profileLoading } = useProfile();
   const { completedIds, loading: lessonsLoading } = useLessonProgress();
@@ -89,6 +92,11 @@ export function ProfileClient() {
   }, [user]);
 
   const loading = userLoading || profileLoading || lessonsLoading || streakLoading;
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/");
+  }
 
   const metadata = user?.user_metadata as Record<string, unknown> | undefined;
   const metadataName = metadata?.name ?? metadata?.full_name;
@@ -282,6 +290,14 @@ export function ProfileClient() {
                 </div>
               )}
             </motion.section>
+
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center rounded-full border-2 border-zinc-200 px-6 py-3.5 text-base font-extrabold text-zinc-500 transition-colors hover:border-berry hover:bg-berry/5 hover:text-berry dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-berry dark:hover:bg-berry/10"
+            >
+              Log out
+            </motion.button>
           </>
         )}
       </div>
